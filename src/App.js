@@ -11,8 +11,8 @@ export default class App extends Component {
   constructor() {
     super();
     this.stepDelay = 150;
-    this.rows = 8;
-    this.cols = 8;
+    this.rows = 16;
+    this.cols = 24;
 
     this.stepInterval = "";
 
