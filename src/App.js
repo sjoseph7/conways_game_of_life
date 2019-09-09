@@ -5,28 +5,41 @@ import Grid from "./components/Grid/Grid";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 
+import unionFind from "./helpers/unionFind";
+
 import "./App.css";
 
 export default class App extends Component {
   constructor() {
     super();
     this.stepDelay = 150;
-    this.rows = 16;
-    this.cols = 24;
+    this.rows = 16 * 2;
+    this.cols = 24 * 2;
 
+    this.colors = [
+      "rgba(170,58,56,1)",
+      "rgba(152,115,56,1)",
+      "rgba(134,115,55,1)",
+      "rgba(115,115,55,1)",
+      "rgba(79,115,54,1)"
+    ];
+
+    this.highColor = [170, 58, 56];
+    this.lowColor = [79, 115, 54];
+
+    this.defaultColor = gradient(this.lowColor, this.highColor, 0); //this.colors[this.colors.length - 1];
     this.stepInterval = "";
 
     this.state = {
       generation: 0,
-      cellStates: Array(this.rows)
-        .fill()
-        .map(() => Array(this.cols).fill(false))
+      cellStates: this.createEmptyGrid(),
+      cellColors: this.createEmptyGrid()
     };
   }
 
   // ---- Life-Cycle Methods ---- //
   componentDidMount() {
-    this.seedGrid(4);
+    this.seedGrid(2);
   }
 
   // ---- Handlers ---- //
@@ -36,6 +49,13 @@ export default class App extends Component {
     row = Number(row);
     col = Number(col);
 
+    //! Test
+    const cellID = getID(this.state.cellStates, row, col);
+    // const neighborCellCoords = getActiveNeighborCoordinates(this.state.)
+    console.log(`ID: ${cellID}`);
+    console.log(`ID: ${cellID}`);
+    //! Test
+
     this.setState(prevState => {
       return {
         cellStates: prevState.cellStates.map((cellStatesRow, row_index) => {
@@ -43,6 +63,13 @@ export default class App extends Component {
             return row === row_index && col === col_index
               ? !cellState
               : cellState;
+          });
+        }),
+        cellColors: prevState.cellColors.map((cellColorsRow, row_index) => {
+          return cellColorsRow.map((cellColor, col_index) => {
+            return row === row_index && col === col_index
+              ? !cellColor
+              : cellColor;
           });
         })
       };
@@ -57,17 +84,22 @@ export default class App extends Component {
     }
     console.log(odds);
 
-    let seededGrid = this.createEmptyGrid();
+    let seededStateGrid = this.createEmptyGrid();
+    let seededColorGrid = this.createEmptyGrid();
 
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
         let cellOn = Math.floor(Math.random() * odds) === 0;
-        if (cellOn) seededGrid[row][col] = true;
+        if (cellOn) {
+          seededStateGrid[row][col] = true;
+          seededColorGrid[row][col] = this.defaultColor;
+        }
       }
     }
 
     this.setState({
-      cellStates: seededGrid
+      cellStates: seededStateGrid,
+      cellColors: seededColorGrid
     });
   };
 
@@ -96,15 +128,53 @@ export default class App extends Component {
         }
         nextCellStates.push(nextCellStatesRow);
       }
+
+      // Stop when nothing is changing
       if (
         JSON.stringify(prevState.cellStates) === JSON.stringify(nextCellStates)
       ) {
-        console.log("!!!");
         this.stop();
         return;
       }
+
+      // Color code the "creatures"
+      const uf = new unionFind(this.rows * this.cols + 1);
+      const activeCellCoordinates = getActiveCellCoordinates(nextCellStates);
+      const nextCellColors = this.createEmptyGrid();
+
+      activeCellCoordinates.forEach(([row, col]) => {
+        const neighborCoordinates = getActiveNeighborCoordinates(
+          nextCellStates,
+          row,
+          col
+        );
+        neighborCoordinates.forEach(coord => {
+          let [n_row, n_col] = coord;
+          const id = getID(prevState.cellStates, row, col);
+          const n_id = getID(prevState.cellStates, n_row, n_col);
+          uf.union(id, n_id);
+        });
+      });
+
+      activeCellCoordinates.forEach(([row, col]) => {
+        const cellID = getID(prevState.cellStates, row, col);
+        const cellRoot = uf.root(cellID);
+        // const selectedColor = roots.indexOf(cellRoot) % this.colors.length;
+        const sizePercent =
+          (uf.segmentSize(cellRoot) / (this.rows * this.cols)) * 10;
+        const selectedColor = gradient(
+          this.lowColor,
+          this.highColor,
+          sizePercent
+        );
+        console.log(`${sizePercent} ==> ${selectedColor}`);
+
+        nextCellColors[row][col] = selectedColor;
+      });
+
       return {
         cellStates: nextCellStates,
+        cellColors: nextCellColors,
         generation: (prevState.generation += 1)
       };
     });
@@ -122,6 +192,7 @@ export default class App extends Component {
   reset = () => {
     this.setState({
       cellStates: this.createEmptyGrid(),
+      cellColors: this.createEmptyGrid(),
       generation: 0
     });
   };
@@ -175,6 +246,7 @@ export default class App extends Component {
           rows={this.rows}
           cols={this.cols}
           cellStates={this.state.cellStates}
+          cellColors={this.state.cellColors}
           handleSelect={this.handleSelect}
         />
         <h2>Generation: {this.state.generation}</h2>
@@ -183,29 +255,70 @@ export default class App extends Component {
   }
 }
 
-function countNeighbors(cellStates, cellRow, cellCol) {
-  let numberOfNeighbors = 0;
-  if (!cellStates) {
+function countNeighbors(grid, cellRow, cellCol) {
+  if (!grid) {
     return;
   }
-  let width = cellStates[0].length - 1;
-  let height = cellStates.length - 1;
+  return getActiveNeighborCoordinates(grid, cellRow, cellCol).length;
+}
+
+function getActiveCellCoordinates(grid, cellRow, cellCol) {
+  const coordGrid = grid.map((gridRow, row_index) =>
+    gridRow.map((cellState, col_index) =>
+      cellState ? [row_index, col_index] : false
+    )
+  );
+
+  const coordArray = coordGrid.flat().filter(coord => coord !== false);
+  return coordArray;
+}
+
+function getActiveNeighborCoordinates(grid, cellRow, cellCol) {
+  let activeNeighborCoordinates = [];
+
+  if (!grid) {
+    return [];
+  }
+
+  const width = grid[0].length;
+  const height = grid.length;
   [-1, 0, 1].forEach(row => {
     [-1, 0, 1].forEach(col => {
       // Skip self
       if (row === 0 && col === 0) {
         return;
-      } else if (cellRow + row > height || cellRow + row < 0) {
+      } else if (cellRow + row > height - 1 || cellRow + row < 0) {
         return;
-      } else if (cellCol + col > width || cellCol + col < 0) {
+      } else if (cellCol + col > width - 1 || cellCol + col < 0) {
         return;
       }
-
-      if (cellStates[cellRow + row][cellCol + col]) {
-        numberOfNeighbors += 1;
+      let neighbor = grid[cellRow + row][cellCol + col];
+      if (neighbor) {
+        activeNeighborCoordinates.push([cellRow + row, cellCol + col]);
       }
     });
   });
 
-  return numberOfNeighbors;
+  return activeNeighborCoordinates;
+}
+
+function getID(grid, cellRow, cellCol) {
+  let width = grid[0].length;
+  return width * cellRow + cellCol;
+}
+
+function gradient(color1, color2, percent) {
+  let result = "#";
+  for (let i = 0; i < 3; i++) {
+    let newValue = Math.floor(map(percent, 0, 1, color1[i], color2[i]));
+    newValue = Math.min(255, Math.max(0, newValue));
+    result += (newValue < 16 ? "0" : "") + newValue.toString(16);
+  }
+  return result;
+}
+
+function map(value, from_min, from_max, to_min, to_max) {
+  return (
+    ((value - from_min) * (to_max - to_min)) / (from_max - from_min) + to_min
+  );
 }
