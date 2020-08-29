@@ -1,13 +1,8 @@
 import React, { Component } from "react";
-
 import Grid from "./components/Grid/Grid";
-
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
-
 import unionFind from "./helpers/unionFind";
-
-import "./App.css";
 
 export default class App extends Component {
   constructor() {
