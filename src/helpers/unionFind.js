@@ -18,12 +18,6 @@ export default class unionFind {
       console.log("Uh-oh");
     }
 
-    // console.log(
-    //   `Union Find on ${N} items${
-    //     this.pathCompression ? ", with Path Compression" : ""
-    //   }`
-    // );
-
     // Make each item its own root, and set size to 1
     for (let i = 0; i < N; i++) {
       this.id[i] = i;

@@ -49,12 +49,9 @@ export default class App extends Component {
     row = Number(row);
     col = Number(col);
 
-    //! Test
     const cellID = getID(this.state.cellStates, row, col);
-    // const neighborCellCoords = getActiveNeighborCoordinates(this.state.)
     console.log(`ID: ${cellID}`);
     console.log(`ID: ${cellID}`);
-    //! Test
 
     this.setState(prevState => {
       return {
@@ -159,7 +156,6 @@ export default class App extends Component {
       activeCellCoordinates.forEach(([row, col]) => {
         const cellID = getID(prevState.cellStates, row, col);
         const cellRoot = uf.root(cellID);
-        // const selectedColor = roots.indexOf(cellRoot) % this.colors.length;
         const sizePercent =
           (uf.segmentSize(cellRoot) / (this.rows * this.cols)) * 10;
         const selectedColor = gradient(
@@ -262,7 +258,7 @@ function countNeighbors(grid, cellRow, cellCol) {
   return getActiveNeighborCoordinates(grid, cellRow, cellCol).length;
 }
 
-function getActiveCellCoordinates(grid, cellRow, cellCol) {
+function getActiveCellCoordinates(grid) {
   const coordGrid = grid.map((gridRow, row_index) =>
     gridRow.map((cellState, col_index) =>
       cellState ? [row_index, col_index] : false
