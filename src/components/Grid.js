@@ -1,6 +1,6 @@
 import React from "react";
 
-import Cell from "../Cell/Cell";
+import Cell from "./Cell";
 
 export default function Grid(props) {
   const { rows, cols, cellStates, cellColors, handleSelect } = props;
