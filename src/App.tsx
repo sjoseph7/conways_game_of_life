@@ -38,7 +38,7 @@ export default class App extends React.Component<{}, AppState> {
   }
 
   // ---- Handlers ---- //
-  handleSelect = (event: Event) => {
+  handleSelect = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const { id } = event.target as HTMLElement;
     const [r, c] = id.split("_");
     const row = parseInt(r);
