@@ -168,17 +168,22 @@ export default class App extends React.Component<{}, AppState> {
   };
 
   run = () => {
-    this.stop();
-    this.setState({ stepInterval: setInterval(this.step, STEP_DELAY) });
-  };
-
-  stop = () => {
-    if (this.state.stepInterval) {
-      clearInterval(this.state.stepInterval);
+    if (!this.state.stepInterval) {
+      this.setState({ stepInterval: setInterval(this.step, STEP_DELAY) });
     }
   };
 
+  stop = () => {
+    if (!!this.state.stepInterval) {
+      clearInterval(this.state.stepInterval);
+    }
+    this.setState({ stepInterval: null });
+  };
+
   reset = () => {
+    if (!!this.state.stepInterval) {
+      clearInterval(this.state.stepInterval);
+    }
     this.setState({
       generation: 0,
       cellStates: this.createEmptyGrid(),
@@ -207,6 +212,7 @@ export default class App extends React.Component<{}, AppState> {
             style={{ margin: "5px" }}
             variant="primary"
             onClick={this.step}
+            disabled={!!this.state.stepInterval}
           >
             Step
           </Button>
@@ -214,6 +220,7 @@ export default class App extends React.Component<{}, AppState> {
             style={{ margin: "5px" }}
             variant="success"
             onClick={this.run}
+            disabled={!!this.state.stepInterval}
           >
             Run
           </Button>
@@ -221,6 +228,7 @@ export default class App extends React.Component<{}, AppState> {
             style={{ margin: "5px" }}
             variant="danger"
             onClick={this.stop}
+            disabled={!this.state.stepInterval}
           >
             Stop
           </Button>
