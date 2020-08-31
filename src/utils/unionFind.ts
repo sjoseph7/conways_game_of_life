@@ -3,8 +3,16 @@
  *    quickly classify groups of connected cells.
  */
 
+interface UnionFindOptions {
+  pathCompression: boolean;
+}
+
 export default class unionFind {
-  constructor(N, options) {
+  id: number[];
+  size: number[];
+  pathCompression: boolean;
+
+  constructor(N: number, options?: UnionFindOptions) {
     this.id = [];
     this.size = [];
     this.pathCompression = true;
@@ -33,10 +41,8 @@ export default class unionFind {
    * *find()*
    *
    * Determine if two items have the same root
-   * @param {number} p
-   * @param {number} q
    */
-  find(p, q) {
+  find(p: number, q: number) {
     return this.root(p) === this.root(q);
   }
 
@@ -44,10 +50,8 @@ export default class unionFind {
    * *union()*
    *
    * Join the roots of the trees containing items p and q
-   * @param {number} p
-   * @param {number} q
    */
-  union(p, q) {
+  union(p: number, q: number) {
     let root_p = this.root(p);
     let root_q = this.root(q);
     if (root_p === root_q) {
@@ -66,9 +70,8 @@ export default class unionFind {
    * *root()*
    *
    * Find the root of the tree containing item i
-   * @param {number} i
    */
-  root(i) {
+  root(i: number) {
     if (this.pathCompression) {
       while (i !== this.id[i]) {
         this.id[i] = this.id[this.id[i]];
@@ -82,7 +85,7 @@ export default class unionFind {
     return i;
   }
 
-  segmentSize(i) {
+  segmentSize(i: number) {
     return this.size[i];
   }
 
