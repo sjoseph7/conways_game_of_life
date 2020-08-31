@@ -28,6 +28,7 @@ const _App = () => {
   // ---- Life-Cycle Methods ---- //
   useEffect(() => {
     seedGrid(2);
+    // eslint-disable-next-line
   }, []);
 
   // ---- Handlers ---- //
