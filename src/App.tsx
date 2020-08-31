@@ -7,7 +7,7 @@ import unionFind from "./utils/unionFind";
 const ROWS = 16 * 2;
 const COLS = 24 * 2;
 
-const STEP_DELAY = 150;
+const STEP_DELAY = 200;
 
 /**
  * *type: [number, number, number] throws error:
@@ -44,9 +44,7 @@ export default class App extends React.Component<{}, AppState> {
     const row = parseInt(r);
     const col = parseInt(c);
 
-    const cellID = getID(this.state.cellStates, row, col);
-    console.log(`ID: ${cellID}`);
-    console.log(`ID: ${cellID}`);
+    // const cellID = getID(this.state.cellStates, row, col);
 
     this.setState((prevState: any) => {
       return {
@@ -76,8 +74,6 @@ export default class App extends React.Component<{}, AppState> {
 
   // ---- Setup Methods ---- //
   seedGrid = (odds: number = 2) => {
-    console.log(odds);
-
     let seededStateGrid = this.createEmptyGrid();
     let seededColorGrid = this.createEmptyGrid();
 
@@ -157,7 +153,6 @@ export default class App extends React.Component<{}, AppState> {
           const cellRoot = uf.root(cellID);
           const sizePercent = (uf.segmentSize(cellRoot) / (ROWS * COLS)) * 10;
           const selectedColor = gradient(LOW_COLOR, HIGH_COLOR, sizePercent);
-          console.log(`${sizePercent} ==> ${selectedColor}`);
 
           nextCellColors[row][col] = selectedColor;
         });
