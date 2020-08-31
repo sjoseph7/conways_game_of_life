@@ -1,15 +1,22 @@
 import React from "react";
-
 import Cell from "./Cell";
 
-export default function Grid(props) {
+interface GridProps {
+  rows: number;
+  cols: number;
+  cellStates: boolean[][];
+  cellColors: string[][];
+  handleSelect: Function;
+}
+
+export default function Grid(props: GridProps) {
   const { rows, cols, cellStates, cellColors, handleSelect } = props;
 
   let cells = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const id = `${row}_${col}`;
-      const cellState = cellStates[row][col] ? "box on" : "box off";
+      const cellState = cellStates[row][col] ? "box on" : "box off"; // CSS classes
       const cellColor = cellColors[row][col] || undefined;
 
       cells.push(
